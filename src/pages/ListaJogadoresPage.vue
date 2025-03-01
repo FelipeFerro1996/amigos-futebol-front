@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { api } from 'src/boot/axios';
 import BreadcrumbsComponent from 'src/components/BreadcrumbsComponent.vue';
+import ModalComponent from 'src/components/ModalComponent.vue';
+import FormJogadoresComponent from 'src/components/FormJogadoresComponent.vue';
 import type IJogador from 'src/interfaces/IJogador';
 import { onMounted, ref } from 'vue';
 
@@ -11,6 +13,7 @@ const breadcrumbs = [
   { label: "Jogadores", icon: "people"},
 ];
 
+// Listagem Jogadores
 const columns = [
     { name: 'nome', align: 'center' as const, label: 'Nome', field: 'nome', sortable: true },
     { name: 'posicao', align: 'center' as const, label: 'Posicao', field: 'posicao', sortable: true },
@@ -30,6 +33,9 @@ const carregarJogadores = async () => {
 
 };
 
+//cadastro jogador
+const modalAberta = ref(false);
+
 onMounted(() => {
     void carregarJogadores();
 })
@@ -40,8 +46,16 @@ onMounted(() => {
     <q-page class="column q-pa-md full-width full-height">
 
         <BreadcrumbsComponent :itens="breadcrumbs"/>
-
+        
+        <ModalComponent :modalAberta="modalAberta">
+            <FormJogadoresComponent @fechar="modalAberta = false"/>
+        </ModalComponent>
+        
         <div class="q-pa-md">
+            <q-btn label="Novo Jogador" color="primary" @click="modalAberta = true" />
+        </div>
+        <div class="q-pa-md">
+
             <q-table
             title="Treats"
             :rows="jogadores"

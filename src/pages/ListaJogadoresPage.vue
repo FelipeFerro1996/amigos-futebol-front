@@ -1,12 +1,14 @@
 <script lang="ts" setup>
-import { api } from 'src/boot/axios';
 import BreadcrumbsComponent from 'src/components/BreadcrumbsComponent.vue';
 import ModalComponent from 'src/components/ModalComponent.vue';
 import FormJogadoresComponent from 'src/components/FormJogadoresComponent.vue';
 import type IJogador from 'src/interfaces/IJogador';
 import { onMounted, ref } from 'vue';
+import jogadoresService from 'src/services/jogadores';
 
 const jogadores = ref<IJogador[]>([])
+
+const { index } = jogadoresService();
 
 const breadcrumbs = [
   { label: "Home", icon: "home", url: "/" },
@@ -24,9 +26,8 @@ const columns = [
 const carregarJogadores = async () => {
 
     try{
-        const response = await api.get('/jogadores');
-        console.log(response.data)
-        jogadores.value = response.data.dados
+        const data = await index();
+        jogadores.value = data.dados
     }catch(erro){
         console.error('Erro ao busca jogadores:', erro)
     }

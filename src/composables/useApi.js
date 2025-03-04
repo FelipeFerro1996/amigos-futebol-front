@@ -11,8 +11,18 @@ export default function useApi(url) {
         }
     }
 
+    const post = async (formData) => {
+        try{
+            const { data } = await api.post(url, formData);
+            return data;
+        }catch(erro){
+            throw new Error(erro);
+        }
+    }
+
     return {
-        index
+        index,
+        post
     }
 
 }

@@ -1,12 +1,12 @@
 <script lang="ts" setup>
-
-    import { api } from 'src/boot/axios';
     import type IJogador from 'src/interfaces/IJogador';
     import { ref, defineEmits } from 'vue';
     import { useQuasar } from "quasar";
     import { type AxiosError } from 'axios';
+    import jogadoresService from 'src/services/jogadores';
 
     const $q = useQuasar();
+    const {post} = jogadoresService();
 
     const emit = defineEmits(["fechar"])
 
@@ -22,8 +22,8 @@
     const salvar = async () => {
         try{
             loading.value = true;
-            const response = await api.post('/jogadores', form.value)
-            console.log(response.data)
+            const response = await post(form.value)
+            console.log(response)
             $q.notify({
                 type: "positive",
                 message: "Jogador cadastrado com sucesso"

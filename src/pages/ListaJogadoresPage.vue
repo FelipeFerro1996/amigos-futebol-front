@@ -37,6 +37,11 @@ const carregarJogadores = async () => {
 //cadastro jogador
 const modalAberta = ref(false);
 
+const fecharModal = async () => {
+    modalAberta.value = false
+    await carregarJogadores()
+}
+
 onMounted(() => {
     void carregarJogadores();
 })
@@ -49,7 +54,7 @@ onMounted(() => {
         <BreadcrumbsComponent :itens="breadcrumbs"/>
         
         <ModalComponent :modalAberta="modalAberta">
-            <FormJogadoresComponent @fechar="modalAberta = false"/>
+            <FormJogadoresComponent @fechar="fecharModal"/>
         </ModalComponent>
         
         <div class="q-pa-md">

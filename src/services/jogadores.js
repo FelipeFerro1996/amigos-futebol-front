@@ -2,10 +2,11 @@ import useApi from "src/composables/useApi"
 
 export default function jogadoresService() {
 
-    const { index } = useApi('/jogadores');
+    const { index, post } = useApi('/jogadores');
 
     return {
-        index
+        index,
+        post
     }
 
 }

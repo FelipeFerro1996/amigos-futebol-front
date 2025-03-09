@@ -15,7 +15,16 @@
           Futebol com os amigos
         </q-toolbar-title>
 
-        <div>Quasar v{{ $q.version }}</div>
+        <q-space />
+
+        <!-- Botão de Logout para usuários autenticados -->
+        <q-btn 
+          v-if="isAuthenticated" 
+          flat 
+          dense 
+          label="Sair" 
+          @click="logout"
+        />
       </q-toolbar>
     </q-header>
 
@@ -25,15 +34,11 @@
       bordered
     >
       <q-list>
-        <q-item-label
-          header
-        >
-          Menu
-        </q-item-label>
+        <q-item-label header> Menu </q-item-label>
 
-        <!-- Gerar o menu dinamicamente com base nas rotas usando o componente EssentialLink -->
+        <!-- Gerar o menu dinamicamente com base nas rotas -->
         <EssentialLink
-          v-for="route in routesList"
+          v-for="route in filteredRoutes"
           :key="route.path"
           :title="route.name"
           :link="route.path"
@@ -50,19 +55,26 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import { ref, computed, watchEffect } from 'vue';
 import { useRouter } from 'vue-router';
 import EssentialLink from 'components/EssentialLink.vue';
+import { useAuth } from '../composables/useAuth'; // Importando o composable de autenticação
 
 const leftDrawerOpen = ref(false);
-
-// Obtém as rotas configuradas
+const { token, logout } = useAuth();
 const router = useRouter();
+const isAuthenticated = ref(!!token.value);
+
+// Atualiza automaticamente caso o token mude
+watchEffect(() => {
+  isAuthenticated.value = !!token.value;
+});
 
 // Filtra as rotas principais que você deseja exibir no menu
-const routesList = computed(() => {
-  return router.options.routes
+const filteredRoutes = computed(() => {
+  return router.getRoutes()
     .filter(route => route.path !== '/:catchAll(.*)*') // Ignora a rota catch-all (erro)
+    .filter(route => route.meta?.requiresAuth) // Mostra apenas rotas públicas ou se estiver autenticado
     .map(route => ({
       path: route.path,
       // Garante que route.name seja uma string ou um valor padrão

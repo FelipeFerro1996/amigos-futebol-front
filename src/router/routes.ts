@@ -1,30 +1,38 @@
 import type { RouteRecordRaw } from 'vue-router';
-import HomePage from 'src/pages/HomePage.vue';
 import MainLayout from 'layouts/MainLayout.vue';
+import HomePage from 'src/pages/HomePage.vue';
 import ListaJogadoresPage from 'src/pages/ListaJogadoresPage.vue';
+import LoginPage from 'src/pages/LoginPage.vue';
+import ErrorNotFound from 'pages/ErrorNotFound.vue';
 
 const routes: RouteRecordRaw[] = [
   {
-    name:'Home',
     path: '/',
     component: MainLayout,
-    meta: { icon: 'home', caption: 'Página inicial' },
     children: [
-      { path: '', component: HomePage },
+      {
+        path: '',
+        name: 'Home',
+        component: HomePage,
+        meta: { icon: 'home', caption: 'Página inicial', requiresAuth: true },
+      },
+      {
+        path: 'jogadores',
+        name: 'Jogadores',
+        component: ListaJogadoresPage,
+        meta: { icon: 'person', caption: 'Lista de jogadores', requiresAuth: true },
+      },
     ],
   },
   {
-    name:'Jogadores',
-    path: '/jogadores',
-    component: MainLayout,
-    meta: { icon: 'person', caption: 'Lista de jogadores' },
-    children: [
-      { path: '', component: ListaJogadoresPage },
-    ],
+    path: '/login',
+    name: 'Login',
+    component: LoginPage,
+    meta: { requiresGuest: true }, // Apenas para visitantes (impede usuários logados)
   },
   {
     path: '/:catchAll(.*)*',
-    component: () => import('pages/ErrorNotFound.vue'),
+    component: ErrorNotFound,
   },
 ];
 

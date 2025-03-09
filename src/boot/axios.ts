@@ -16,6 +16,12 @@ declare module 'vue' {
 // for each client)
 const api = axios.create({ baseURL: 'http://localhost:8080/api' });
 
+const token = localStorage.getItem('token');
+
+if(token){
+  api.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+}
+
 export default defineBoot(({ app }) => {
   // for use inside Vue files (Options API) through this.$axios and this.$api
 

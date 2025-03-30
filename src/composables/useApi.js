@@ -20,9 +20,19 @@ export default function useApi(url) {
         }
     }
 
+    const update = async (formData) => {
+        try{
+            const { data } = await api.put(`${url}/${formData.id}`, formData);
+            return data;
+        }catch(erro){
+            throw new Error(erro);
+        }
+    }
+
     return {
         index,
-        post
+        post,
+        update
     }
 
 }

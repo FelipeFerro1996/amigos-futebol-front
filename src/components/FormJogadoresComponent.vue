@@ -1,53 +1,69 @@
 <script lang="ts" setup>
     import type IJogador from 'src/interfaces/IJogador';
-    import { ref, defineEmits } from 'vue';
+    import { ref, defineEmits, watch } from 'vue';
     import { useQuasar } from "quasar";
-    import { type AxiosError } from 'axios';
     import jogadoresService from 'src/services/jogadores';
+    import { useErrorHandler } from "src/composables/errorHandler";
 
+    const { handleError } = useErrorHandler();
     const $q = useQuasar();
-    const {post} = jogadoresService();
-
+    const {post, update} = jogadoresService();
     const emit = defineEmits(["fechar"])
-
+    const props = defineProps<{ jogador?: IJogador }>();
     const loading = ref(false);
 
     const form = ref<IJogador>({
+        id:0,
         nome: "",
         posicao: "",
         nivel: 0,
         email:""
     });
 
+    watch(
+    () => props.jogador,
+        (novoJogador) => {
+            form.value = novoJogador
+                ? { ...novoJogador }
+                : { id: 0, nome: '', posicao: '', nivel: 0, email: '' };
+        },
+        { immediate: true }
+    );
+
     const salvar = async () => {
-        try{
+        try {
             loading.value = true;
-            const response = await post(form.value)
-            console.log(response)
+            await post(form.value);
+
             $q.notify({
                 type: "positive",
                 message: "Jogador cadastrado com sucesso"
-            })
-            emit("fechar")
-        }catch(error){
-            const err = error as AxiosError<{ errors: Record<string, string[]> }>;
-            if(err.response && err.response.status === 422){
-                const errors = err.response.data.errors;
-
-                Object.values(errors).forEach((mensagens) => {
-                    mensagens.forEach((mensagem) => {
-                        $q.notify({
-                            type: "negative",
-                            message: mensagem
-                        });
-                    });
-                });
-            }
-
-        }finally{
-            loading.value = false
+            });
+            emit("fechar");
+        } catch (error) {
+            handleError(error);
+        } finally {
+            loading.value = false;
         }
-    }
+    };
+
+    const atualizar = async () => {
+        try {
+            loading.value = true;
+            await update(form.value);
+
+            $q.notify({
+                type: "positive",
+                message: "Jogador atualizado com sucesso"
+            });
+            emit("fechar");
+        } catch (error) {
+            handleError(error);
+        } finally {
+            loading.value = false;
+        }
+    };
+
 
 </script>
 
@@ -57,7 +73,7 @@
             <div class="text-h6">Cadastrar Jogador</div>
         </q-card-section>
 
-        <q-form @submit.prevent="salvar">
+        <q-form @submit.prevent="form.id ? atualizar() : salvar() ">
             <q-card-section>
                 <div class="q-pa-md">
                     <div class="q-gutter-md" >
@@ -105,7 +121,7 @@
             
             <q-card-actions align="right">
                 <q-btn flat label="Cancelar" color="negative" @click="emit('fechar')" />
-                <q-btn type="submit" label="Salvar" color="primary" :loading="loading"/>
+                <q-btn type="submit" :label="form.id > 0 ? 'Atualizar' : 'Cadastrar'" color="primary" :loading="loading"/>
             </q-card-actions>
         </q-form>
         

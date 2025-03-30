@@ -8,6 +8,8 @@ import jogadoresService from 'src/services/jogadores';
 
 const jogadores = ref<IJogador[]>([])
 
+const jogadorSelecionado = ref<IJogador | null>(null);
+
 const { index } = jogadoresService();
 
 const breadcrumbs = [
@@ -21,7 +23,18 @@ const columns = [
     { name: 'posicao', align: 'center' as const, label: 'Posicao', field: 'posicao', sortable: true },
     { name: 'email', align: 'center' as const, label: 'Email', field: 'email', sortable: true },
     { name: 'nivel', align: 'center' as const, label: 'Nivel', field: 'nivel', sortable: true },
+    { name: 'actions', align: 'center' as const, label: 'actions', field: 'actions', sortable: true },
 ];
+
+const abrirEdicao = (jogador: IJogador) => {
+    jogadorSelecionado.value = { ...jogador } as IJogador;
+    modalAberta.value = true;
+};
+
+const abrirCadastro = () => {
+    jogadorSelecionado.value = { id: 0, nome: '', posicao: '', nivel: 0, email: '' }
+    modalAberta.value = true;
+}
 
 const carregarJogadores = async () => {
 
@@ -54,20 +67,31 @@ onMounted(() => {
         <BreadcrumbsComponent :itens="breadcrumbs"/>
         
         <ModalComponent :modalAberta="modalAberta">
-            <FormJogadoresComponent @fechar="fecharModal"/>
+            <FormJogadoresComponent 
+                v-if="jogadorSelecionado" 
+                :jogador="jogadorSelecionado"
+                @fechar="fecharModal"/>
         </ModalComponent>
         
         <div class="q-pa-md">
-            <q-btn label="Novo Jogador" color="primary" @click="modalAberta = true" />
+            <q-btn label="Novo Jogador" color="primary" @click="abrirCadastro()" />
         </div>
         <div class="q-pa-md">
 
             <q-table
-            title="Treats"
+            title="Jogadores"
             :rows="jogadores"
             :columns="columns"
-            row-key="name"
-            />
+            row-key="id"
+            >
+                <template v-slot:body-cell-actions="props">
+                    <q-td key="actions" :props="props">
+                        <q-btn icon="edit" color="primary" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
+                        <q-btn icon="delete" color="negative" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
+                    </q-td>
+                </template>
+        </q-table>
+
         </div>
 
     </q-page>

@@ -29,10 +29,21 @@ export default function useApi(url) {
         }
     }
 
+    const remove = async (id) => {
+        try {
+            const { data } = await api.delete(`${url}/${id}`);
+            console.warn(data)
+            return data;
+        } catch (erro) {
+            throw new Error(erro)
+        }
+    }
+
     return {
         index,
         post,
-        update
+        update,
+        remove
     }
 
 }

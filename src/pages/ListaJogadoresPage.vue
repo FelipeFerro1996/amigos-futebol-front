@@ -5,12 +5,21 @@ import FormJogadoresComponent from 'src/components/FormJogadoresComponent.vue';
 import type IJogador from 'src/interfaces/IJogador';
 import { onMounted, ref } from 'vue';
 import jogadoresService from 'src/services/jogadores';
+import { useQuasar } from 'quasar';
+import { useErrorHandler } from 'src/composables/errorHandler';
+import { useConfirmation } from 'src/composables/confirmDialog';
+
+const { handleError } =  useErrorHandler();
+
+const $q = useQuasar();
 
 const jogadores = ref<IJogador[]>([])
 
 const jogadorSelecionado = ref<IJogador | null>(null);
 
-const { index } = jogadoresService();
+const { index, remove } = jogadoresService();
+
+const { confirm } = useConfirmation();
 
 const breadcrumbs = [
   { label: "Home", icon: "home", url: "/" },
@@ -39,12 +48,36 @@ const abrirCadastro = () => {
 const carregarJogadores = async () => {
 
     try{
+        $q.loading.show();
         const data = await index();
         jogadores.value = data.dados
     }catch(erro){
         console.error('Erro ao busca jogadores:', erro)
+    }finally{
+        $q.loading.hide();
     }
 
+};
+
+const removeJogador = async (id: number) => {
+  try {
+    const confirmacao = await confirm('Deseja remover o jogador?');
+    
+    if (!confirmacao) return;
+    
+    $q.loading.show();
+    await remove(id);
+    await carregarJogadores();
+    
+    $q.notify({
+      type: "positive",
+      message: "Jogador excluído com sucesso"
+    });
+  } catch (error) {
+    handleError(error);
+  } finally {
+    $q.loading.hide();
+  }
 };
 
 //cadastro jogador
@@ -87,7 +120,7 @@ onMounted(() => {
                 <template v-slot:body-cell-actions="props">
                     <q-td key="actions" :props="props">
                         <q-btn icon="edit" color="primary" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
-                        <q-btn icon="delete" color="negative" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
+                        <q-btn icon="delete" color="negative" dense :size="'sm'" @click="removeJogador(props.row.id)" class="q-mx-sm"/>
                     </q-td>
                 </template>
         </q-table>

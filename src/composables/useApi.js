@@ -2,8 +2,8 @@ import {api} from 'boot/axios';
 
 export default function useApi(url) {
 
-    const index = async () => {
-        const { data } = await api.get(url);
+    const index = async (params = {}) => {
+        const { data } = await api.get(url, {params});
         return data;
     }
 
@@ -18,7 +18,6 @@ export default function useApi(url) {
     }
 
     const remove = async (id) => {
-        id = 1000
         const { data } = await api.delete(`${url}/${id}`);
         return data;
     }

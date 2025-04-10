@@ -3,7 +3,7 @@ import BreadcrumbsComponent from 'src/components/BreadcrumbsComponent.vue';
 import ModalComponent from 'src/components/ModalComponent.vue';
 import FormJogadoresComponent from 'src/components/FormJogadoresComponent.vue';
 import type IJogador from 'src/interfaces/IJogador';
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import jogadoresService from 'src/services/jogadores';
 import { useQuasar } from 'quasar';
 import { useErrorHandler } from 'src/composables/errorHandler';
@@ -45,12 +45,27 @@ const abrirCadastro = () => {
     modalAberta.value = true;
 }
 
-const carregarJogadores = async () => {
+const pagination = ref({
+    page:1, 
+    rowsPerPage:10, 
+    rowsNumber:0
+})
 
+const carregarJogadores = async () => {
+    const { page, rowsPerPage } = pagination.value;
     try{
         $q.loading.show();
-        const data = await index();
-        jogadores.value = data.dados
+        const data = await index({
+            page: page,
+            rowsPerPage: rowsPerPage
+        });
+
+        pagination.value = {
+            page: data.dados.current_page,
+            rowsPerPage: data.dados.per_page,
+            rowsNumber: data.dados.total
+        }
+        jogadores.value = data.dados.data
     }catch(erro){
         console.error('Erro ao busca jogadores:', erro)
     }finally{
@@ -92,6 +107,13 @@ onMounted(() => {
     void carregarJogadores();
 })
 
+const pagesNumber = computed(() => {
+  return Math.ceil(pagination.value.rowsNumber / pagination.value.rowsPerPage)
+})
+
+watch(() => pagination.value.page, async () => {
+   await carregarJogadores()
+})
 </script>
 
 <template>
@@ -112,18 +134,30 @@ onMounted(() => {
         <div class="q-pa-md">
 
             <q-table
-            title="Jogadores"
-            :rows="jogadores"
-            :columns="columns"
-            row-key="id"
-            >
-                <template v-slot:body-cell-actions="props">
-                    <q-td key="actions" :props="props">
-                        <q-btn icon="edit" color="primary" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
-                        <q-btn icon="delete" color="negative" dense :size="'sm'" @click="removeJogador(props.row.id)" class="q-mx-sm"/>
-                    </q-td>
-                </template>
-        </q-table>
+                title="Jogadores"
+                :rows="jogadores"
+                :columns="columns"
+                v-model:pagination="pagination"
+                row-key="id"
+                hide-pagination
+                >
+                    <template v-slot:body-cell-actions="props">
+                        <q-td key="actions" :props="props">
+                            <q-btn icon="edit" color="primary" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
+                            <q-btn icon="delete" color="negative" dense :size="'sm'" @click="removeJogador(props.row.id)" class="q-mx-sm"/>
+                        </q-td>
+                    </template>
+            </q-table>
+
+            <div class="row justify-center q-mt-md">
+             
+                <q-pagination
+                    v-model="pagination.page"
+                    :max="pagesNumber"
+                    :max-pages="3"
+                    boundary-numbers
+                    />
+            </div>
 
         </div>
 

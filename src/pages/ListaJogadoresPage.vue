@@ -15,6 +15,9 @@ const $q = useQuasar();
 
 const jogadores = ref<IJogador[]>([])
 
+const nome_jogador = ref<string>('');
+const email_jogador = ref<string>('');
+
 const jogadorSelecionado = ref<IJogador | null>(null);
 
 const { index, remove } = jogadoresService();
@@ -57,7 +60,9 @@ const carregarJogadores = async () => {
         $q.loading.show();
         const data = await index({
             page: page,
-            rowsPerPage: rowsPerPage
+            rowsPerPage: rowsPerPage,
+            nome_jogador: nome_jogador.value,
+            email_jogador: email_jogador.value
         });
 
         pagination.value = {
@@ -103,6 +108,12 @@ const fecharModal = async () => {
     await carregarJogadores()
 }
 
+const limparFormularioBusca = () => {
+    nome_jogador.value = '';
+    email_jogador.value = '';
+    void carregarJogadores();
+}
+
 onMounted(() => {
     void carregarJogadores();
 })
@@ -127,11 +138,45 @@ watch(() => pagination.value.page, async () => {
                 :jogador="jogadorSelecionado"
                 @fechar="fecharModal"/>
         </ModalComponent>
-        
-        <div class="q-pa-md">
-            <q-btn label="Novo Jogador" color="primary" @click="abrirCadastro()" />
-        </div>
-        <div class="q-pa-md">
+
+        <q-card>
+            <q-card-section>
+                <div class="text-h6">Busca</div>
+            </q-card-section>
+
+            <q-card-section>
+                <div class="q-pa-sm">
+
+                    <q-form
+                        @submit="carregarJogadores"
+                    >
+                        <div class="row">
+                            <div class="col-12 col-md-6 q-pa-sm">
+                                <q-input
+                                    filled
+                                    v-model="nome_jogador"
+                                    label="Nome Jogador"
+                                />
+                            </div>
+                            <div class="col-12 col-md-6 q-pa-sm">
+                                <q-input
+                                    filled 
+                                    v-model="email_jogador"
+                                    label="Email"
+                                />
+                            </div>
+                            <div class="col-12 q-pa-sm q-gutter-sm">
+                                <q-btn label="Buscar" type="submit" color="primary"/>
+                                <q-btn label="Limpar" type="button" color="secondary" @click="limparFormularioBusca"/>
+                            </div>
+                        </div>
+                    </q-form>
+
+                </div>
+            </q-card-section>
+        </q-card>
+
+        <div class="q-pt-sm">
 
             <q-table
                 title="Jogadores"
@@ -141,6 +186,9 @@ watch(() => pagination.value.page, async () => {
                 row-key="id"
                 hide-pagination
                 >
+                    <template v-slot:top-right>
+                        <q-btn label="Novo Jogador" color="primary" @click="abrirCadastro()" />
+                    </template>
                     <template v-slot:body-cell-actions="props">
                         <q-td key="actions" :props="props">
                             <q-btn icon="edit" color="primary" dense :size="'sm'" @click="abrirEdicao(props.row)" class="q-mx-sm"/>
@@ -148,9 +196,9 @@ watch(() => pagination.value.page, async () => {
                         </q-td>
                     </template>
             </q-table>
-
+    
             <div class="row justify-center q-mt-md">
-             
+                
                 <q-pagination
                     v-model="pagination.page"
                     :max="pagesNumber"
@@ -158,8 +206,8 @@ watch(() => pagination.value.page, async () => {
                     boundary-numbers
                     />
             </div>
-
         </div>
+
 
     </q-page>
 </template>
